@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #070b14;
+    color: #e2e8f0;
+    overflow: hidden;
+    user-select: none;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+/* Custom Biotech & Sci-fi Typography */
+.font-orbitron {
+  font-family: 'Orbitron', monospace, sans-serif;
+}
+
+.font-rajdhani {
+  font-family: 'Rajdhani', sans-serif;
+}
+
+/* Glow effects */
+.glow-cyan {
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+}
+
+.glow-magenta {
+  box-shadow: 0 0 25px rgba(255, 0, 128, 0.4);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
+}
+
+/* Pulsing beacon */
+@keyframes bio-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.97);
+  }
+}
+
+.animate-bio-pulse {
+  animation: bio-pulse 3s infinite ease-in-out;
+}
