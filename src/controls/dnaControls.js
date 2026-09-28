@@ -125,7 +125,7 @@ export class DNAControls {
       this.lastPinchDist = null;
     }
 
-    // 6. OPEN_PALM / POINT (Rotate 3D)
+    // 6. OPEN_PALM / POINT (Rotate 3D & Pan Left/Right/Up/Down)
     if ((gesture === GESTURES.OPEN_PALM || gesture === GESTURES.POINT) && details && details.palmCenter) {
       const palm = details.palmCenter;
 
@@ -140,6 +140,11 @@ export class DNAControls {
 
         this.targetRotation.y += rotY;
         this.targetRotation.x += rotX;
+
+        // Apply smooth translation (pan left, right, up, down)
+        const panSensitivity = 9.0;
+        this.targetPosition.x = Math.max(-8, Math.min(8, this.targetPosition.x + dx * panSensitivity));
+        this.targetPosition.y = Math.max(-6, Math.min(6, this.targetPosition.y - dy * panSensitivity));
 
         // Impart momentum
         this.rotationVelocity.x = rotX * 0.4;
@@ -156,6 +161,7 @@ export class DNAControls {
   // Mouse / Touch Fallback handlers
   onPointerDown(e) {
     this.isDragging = true;
+    this.isPanning = e.button === 2 || e.shiftKey || e.button === 1;
     this.lastMousePos = { x: e.clientX, y: e.clientY };
   }
 
@@ -164,17 +170,23 @@ export class DNAControls {
     const dx = (e.clientX - this.lastMousePos.x) * 0.008;
     const dy = (e.clientY - this.lastMousePos.y) * 0.008;
 
-    this.targetRotation.y += dx;
-    this.targetRotation.x += dy;
+    if (this.isPanning) {
+      this.targetPosition.x = Math.max(-8, Math.min(8, this.targetPosition.x + dx * 8));
+      this.targetPosition.y = Math.max(-6, Math.min(6, this.targetPosition.y - dy * 8));
+    } else {
+      this.targetRotation.y += dx;
+      this.targetRotation.x += dy;
 
-    this.rotationVelocity.x = dy * 0.3;
-    this.rotationVelocity.y = dx * 0.3;
+      this.rotationVelocity.x = dy * 0.3;
+      this.rotationVelocity.y = dx * 0.3;
+    }
 
     this.lastMousePos = { x: e.clientX, y: e.clientY };
   }
 
   onPointerUp() {
     this.isDragging = false;
+    this.isPanning = false;
   }
 
   onWheel(e) {

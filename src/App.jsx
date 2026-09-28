@@ -10,12 +10,14 @@ import {
   Pause,
   Sun,
   Moon,
-  Globe
+  Globe,
+  Bot
 } from 'lucide-react';
 import AnatomyViewer from './components/AnatomyViewer';
 import CameraFeed from './components/CameraFeed';
 import GestureStatus from './components/GestureStatus';
 import OrganTelemetryBar from './components/OrganTelemetryBar';
+import OrganAIChatbot from './components/OrganAIChatbot';
 import { DNAControls } from './controls/dnaControls';
 import { detectMultiHandGesture, GESTURES } from './handTracking/gestureDetector';
 import { TRANSLATIONS } from './i18n/translations';
@@ -114,6 +116,7 @@ export default function App() {
   const [isAutoRotate, setIsAutoRotate] = useState(true);
   const [sensitivity, setSensitivity] = useState(3.2);
   const [fps, setFps] = useState(60);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   // FPS Counter
   useEffect(() => {
@@ -170,7 +173,7 @@ export default function App() {
   // Keyboard Shortcuts (1-5 to switch organs, Space for auto-spin, R for reset, E for special action)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT') return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
       if (e.key === '1') setActiveOrgan('HEART');
       else if (e.key === '2') setActiveOrgan('BRAIN');
@@ -184,6 +187,8 @@ export default function App() {
         handleReset();
       } else if (e.key === 'e' || e.key === 'E') {
         controlsRef.current.onSpecialAction?.();
+      } else if (e.key === 'c' || e.key === 'C') {
+        setIsChatbotOpen((prev) => !prev);
       }
     };
 
@@ -340,6 +345,28 @@ export default function App() {
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden md:inline">{t.reset}</span>
+          </button>
+
+          {/* AI Organ Chatbot Toggle Button */}
+          <button
+            onClick={() => setIsChatbotOpen((prev) => !prev)}
+            title={language === 'bn' ? 'অর্গান এআই চ্যাটবট খুলুন (Ollama)' : 'Open Organ AI Chatbot (Ollama)'}
+            className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all text-xs font-mono cursor-pointer shadow-md ${
+              isChatbotOpen
+                ? 'bg-gradient-to-r from-cyan-500/30 to-blue-500/30 border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(0,240,255,0.4)]'
+                : isLight
+                  ? 'bg-white/90 border-slate-200 text-slate-700 hover:text-cyan-700 hover:border-cyan-400'
+                  : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:text-cyan-300 hover:border-cyan-500/60'
+            }`}
+          >
+            <Bot className={`w-3.5 h-3.5 ${isChatbotOpen ? 'text-cyan-300 animate-pulse' : 'text-cyan-400'}`} />
+            <span className="hidden sm:inline font-bold">
+              {t.aiChat || 'BIO-AI'}
+            </span>
+            <span className="flex h-1.5 w-1.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-500"></span>
+            </span>
           </button>
 
           {/* Language Selector: Pill Toggle [ EN | বাং ] */}
@@ -515,7 +542,25 @@ export default function App() {
         <span>{t.hints.keys}</span>
         <span>•</span>
         <span>{t.hints.peace}</span>
+        <span>•</span>
+        <span>{t.hints.aiChat}</span>
       </div>
+
+      {/* Floating Bio-AI Organ Chatbot Drawer */}
+      <OrganAIChatbot
+        isOpen={isChatbotOpen}
+        onClose={() => setIsChatbotOpen(false)}
+        activeOrgan={activeOrgan}
+        onSelectOrgan={handleOrganChange}
+        telemetry={{
+          heartBpm,
+          brainWaveMode,
+          lungBreathRate,
+          dnaUnwind
+        }}
+        theme={theme}
+        language={language}
+      />
     </div>
   );
 }

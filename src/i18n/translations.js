@@ -8,6 +8,7 @@ export const TRANSLATIONS = {
     spin: 'SPIN',
     paused: 'PAUSED',
     reset: 'RESET',
+    aiChat: 'BIO-AI',
     themeDark: 'Dark Mode',
     themeLight: 'Light Mode',
     langEn: 'EN',
@@ -43,7 +44,8 @@ export const TRANSLATIONS = {
       zoom: '⚙️ Scroll to zoom',
       gestures: '🖐️ Webcam hand gestures',
       keys: '⌨️ Keys 1-5 to switch organs',
-      peace: '✌️ Peace gesture for signature reaction'
+      peace: '✌️ Peace gesture for signature reaction',
+      aiChat: '🤖 C to toggle BioAI'
     },
 
     // Gesture Status & Matrix
@@ -178,6 +180,7 @@ export const TRANSLATIONS = {
     spin: 'ঘূর্ণন',
     paused: 'স্থগিত',
     reset: 'রিসেট',
+    aiChat: 'এআই চ্যাট',
     themeDark: 'ডার্ক মোড',
     themeLight: 'লাইট মোড',
     langEn: 'EN',
@@ -213,7 +216,8 @@ export const TRANSLATIONS = {
       zoom: '⚙️ জুম করতে স্ক্রোল করুন',
       gestures: '🖐️ ওয়েবক্যাম হাতের ইশারা',
       keys: '⌨️ অঙ্গ পরিবর্তন করতে ১-৫ কী চাপুন',
-      peace: '✌️ বিশেষ প্রতিক্রিয়ার জন্য পিস ইশারা'
+      peace: '✌️ বিশেষ প্রতিক্রিয়ার জন্য পিস ইশারা',
+      aiChat: '🤖 C চাপলে BioAI চ্যাট'
     },
 
     // Gesture Status & Matrix
