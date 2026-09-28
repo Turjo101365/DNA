@@ -34,6 +34,9 @@ export class DNAControls {
     // Mouse fallback state
     this.isDragging = false;
     this.lastMousePos = { x: 0, y: 0 };
+
+    // Dynamic special action callback (e.g. Explode skeleton, Cardiac pulse, Synapse trigger)
+    this.onSpecialAction = null;
   }
 
   reset() {
@@ -76,11 +79,14 @@ export class DNAControls {
       return;
     }
 
-    // 3. Check PEACE (Unwind / Mutate)
+    // 3. Check PEACE (Trigger Special Organ Action)
     if (gesture === GESTURES.PEACE) {
-      // Debounce toggling unwind
+      // Debounce toggling special action
       if (now - this.lastGestureTime > 1200) {
         this.toggleUnwind();
+        if (typeof this.onSpecialAction === 'function') {
+          this.onSpecialAction();
+        }
         this.lastGestureTime = now;
       }
     }
