@@ -7,6 +7,7 @@ import { createNeuralBrain, BRAIN_ANATOMY_INFO } from '../models3d/brainModel';
 import { createRespiratoryLungs, LUNGS_ANATOMY_INFO } from '../models3d/lungsModel';
 import { createVisceralOrgans, VISCERAL_ANATOMY_INFO } from '../models3d/visceralModel';
 import { createProceduralDNA, DNA_ANATOMY_INFO } from '../models3d/dnaModel';
+import { TRANSLATIONS } from '../i18n/translations';
 
 export default function AnatomyViewer({
   controls,
@@ -14,15 +15,24 @@ export default function AnatomyViewer({
   heartBpm = 72,
   brainWaveMode = 'Beta',
   lungBreathRate = 16,
-  useGlbModel = true
+  useGlbModel = true,
+  theme = 'dark',
+  language = 'en'
 }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
 
   const [hoveredData, setHoveredData] = useState(null);
 
-  // References to dynamic model controllers
+  // References to dynamic model controllers and scene context
   const modelsRef = useRef({});
+  const sceneContextRef = useRef({
+    scene: null,
+    ambientLight: null,
+    keyLight: null,
+    rimLight: null,
+    fillLight: null
+  });
 
   useEffect(() => {
     const container = containerRef.current;
@@ -68,6 +78,14 @@ export default function AnatomyViewer({
     const fillLight = new THREE.PointLight(0x00ffaa, 2.4, 35);
     fillLight.position.set(0, 0, 10);
     scene.add(fillLight);
+
+    sceneContextRef.current = {
+      scene,
+      ambientLight,
+      keyLight,
+      rimLight,
+      fillLight
+    };
 
     // 4. Ambient Floating Bio-particles
     const particleCount = 450;
@@ -337,6 +355,46 @@ export default function AnatomyViewer({
     }
   }, [activeOrgan, heartBpm, brainWaveMode, lungBreathRate, useGlbModel]);
 
+  // Adjust Three.js fog and scene lighting when theme changes
+  useEffect(() => {
+    const ctx = sceneContextRef.current;
+    if (!ctx.scene) return;
+    const isLight = theme === 'light';
+
+    if (isLight) {
+      if (ctx.scene.fog) {
+        ctx.scene.fog.color.setHex(0xf1f5f9);
+      }
+      if (ctx.ambientLight) {
+        ctx.ambientLight.color.setHex(0xffffff);
+        ctx.ambientLight.intensity = 2.4;
+      }
+      if (ctx.keyLight) {
+        ctx.keyLight.intensity = 4.2;
+      }
+      if (ctx.rimLight) {
+        ctx.rimLight.intensity = 2.8;
+      }
+    } else {
+      if (ctx.scene.fog) {
+        ctx.scene.fog.color.setHex(0x050811);
+      }
+      if (ctx.ambientLight) {
+        ctx.ambientLight.color.setHex(0x1a2639);
+        ctx.ambientLight.intensity = 2.0;
+      }
+      if (ctx.keyLight) {
+        ctx.keyLight.intensity = 3.8;
+      }
+      if (ctx.rimLight) {
+        ctx.rimLight.intensity = 3.0;
+      }
+    }
+  }, [theme]);
+
+  const tViewer = TRANSLATIONS[language]?.viewer || TRANSLATIONS.en.viewer;
+  const isLight = theme === 'light';
+
   return (
     <div
       ref={containerRef}
@@ -347,21 +405,27 @@ export default function AnatomyViewer({
       {/* Hover Anatomical Inspection Hologram Card */}
       {hoveredData && (
         <div
-          className="fixed pointer-events-none z-50 p-4 rounded-2xl backdrop-blur-2xl bg-slate-950/90 border border-cyan-500/50 shadow-[0_0_35px_rgba(0,240,255,0.3)] text-slate-100 max-w-sm transition-opacity duration-150"
+          className={`fixed pointer-events-none z-50 p-4 rounded-2xl backdrop-blur-2xl border transition-opacity duration-150 max-w-sm ${
+            isLight
+              ? 'bg-white/95 border-cyan-500/40 shadow-[0_10px_35px_rgba(0,0,0,0.15)] text-slate-800'
+              : 'bg-slate-950/90 border-cyan-500/50 shadow-[0_0_35px_rgba(0,240,255,0.3)] text-slate-100'
+          }`}
           style={{
             left: `${Math.min(window.innerWidth - 380, hoveredData.clientX + 20)}px`,
             top: `${Math.min(window.innerHeight - 260, hoveredData.clientY - 40)}px`
           }}
         >
-          <div className="flex items-center justify-between gap-3 border-b border-slate-800/80 pb-2 mb-2">
+          <div className={`flex items-center justify-between gap-3 border-b pb-2 mb-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
             <div
               className="font-bold text-sm tracking-wide font-['Orbitron'] flex items-center gap-1.5"
-              style={{ color: hoveredData.color || '#38bdf8' }}
+              style={{ color: hoveredData.color || (isLight ? '#0284c7' : '#38bdf8') }}
             >
               <span>{hoveredData.name}</span>
             </div>
             {hoveredData.system && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800/80 text-cyan-300 font-mono">
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                isLight ? 'bg-slate-100 border border-slate-200 text-cyan-700 font-semibold' : 'bg-slate-800/80 text-cyan-300'
+              }`}>
                 {hoveredData.system}
               </span>
             )}
@@ -369,43 +433,45 @@ export default function AnatomyViewer({
 
           <div className="text-xs space-y-1.5 font-['Rajdhani'] font-medium">
             {hoveredData.latin && (
-              <div className="text-slate-400 italic text-[11px]">
-                <span className="text-slate-500 not-italic">Latin:</span> {hoveredData.latin}
+              <div className={`italic text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <span className={`${isLight ? 'text-slate-500' : 'text-slate-500'} not-italic`}>{tViewer.latin}</span> {hoveredData.latin}
               </div>
             )}
             {hoveredData.pressure && (
-              <div className="text-slate-300">
-                <span className="text-slate-400">Hydrodynamic Pressure:</span> {hoveredData.pressure}
+              <div className={isLight ? 'text-slate-700' : 'text-slate-300'}>
+                <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>{tViewer.pressure}</span> {hoveredData.pressure}
               </div>
             )}
             {hoveredData.volume && (
-              <div className="text-slate-300">
-                <span className="text-slate-400">Capacity / Volume:</span> {hoveredData.volume}
+              <div className={isLight ? 'text-slate-700' : 'text-slate-300'}>
+                <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>{tViewer.volume}</span> {hoveredData.volume}
               </div>
             )}
             {hoveredData.neurons && (
-              <div className="text-slate-300">
-                <span className="text-slate-400">Neural Network:</span> {hoveredData.neurons}
+              <div className={isLight ? 'text-slate-700' : 'text-slate-300'}>
+                <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>{tViewer.neurons}</span> {hoveredData.neurons}
               </div>
             )}
             {hoveredData.capacity && (
-              <div className="text-slate-300">
-                <span className="text-slate-400">Functional Capacity:</span> {hoveredData.capacity}
+              <div className={isLight ? 'text-slate-700' : 'text-slate-300'}>
+                <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>{tViewer.capacity}</span> {hoveredData.capacity}
               </div>
             )}
             {hoveredData.gfr && (
-              <div className="text-slate-300">
-                <span className="text-slate-400">Filtration GFR:</span> {hoveredData.gfr}
+              <div className={isLight ? 'text-slate-700' : 'text-slate-300'}>
+                <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>{tViewer.gfr}</span> {hoveredData.gfr}
               </div>
             )}
 
-            <p className="text-[11.5px] text-slate-300 leading-snug pt-1 font-sans border-t border-slate-900">
+            <p className={`text-[11.5px] leading-snug pt-1 font-sans border-t ${isLight ? 'text-slate-700 border-slate-200' : 'text-slate-300 border-slate-900'}`}>
               {hoveredData.function || hoveredData.desc}
             </p>
 
             {hoveredData.fact && (
-              <div className="p-2 rounded-lg bg-cyan-950/30 border border-cyan-500/20 text-[10.5px] text-cyan-200/90 font-sans leading-tight">
-                💡 <span className="font-semibold">Clinical Fact:</span> {hoveredData.fact}
+              <div className={`p-2 rounded-lg border text-[10.5px] font-sans leading-tight ${
+                isLight ? 'bg-cyan-50/80 border-cyan-200 text-cyan-900' : 'bg-cyan-950/30 border-cyan-500/20 text-cyan-200/90'
+              }`}>
+                💡 <span className="font-semibold">{tViewer.clinicalFact}</span> {hoveredData.fact}
               </div>
             )}
           </div>

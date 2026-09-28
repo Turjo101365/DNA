@@ -1,12 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Camera, CameraOff, Eye, EyeOff, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
+import { Camera, CameraOff, Eye, EyeOff, RefreshCw, AlertCircle } from 'lucide-react';
 import { HandTracker } from '../handTracking/handTracker';
+import { TRANSLATIONS } from '../i18n/translations';
 
 export default function CameraFeed({
   onResults,
   activeGesture = 'NONE',
   isEnabled = true,
-  onToggle
+  onToggle,
+  theme = 'dark',
+  language = 'en'
 }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -16,6 +19,9 @@ export default function CameraFeed({
   const [cameraError, setCameraError] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
   const [mirror, setMirror] = useState(true);
+
+  const isLight = theme === 'light';
+  const t = TRANSLATIONS[language]?.camera || TRANSLATIONS.en.camera;
 
   // Initialize and run hand tracker
   useEffect(() => {
@@ -83,10 +89,14 @@ export default function CameraFeed({
       <div className="flex items-center gap-2">
         <button
           onClick={onToggle}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl backdrop-blur-md bg-slate-900/80 border border-slate-700 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/50 transition-all text-xs font-mono shadow-lg cursor-pointer"
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl backdrop-blur-md border transition-all text-xs font-mono shadow-lg cursor-pointer ${
+            isLight
+              ? 'bg-white/90 border-slate-300 text-slate-700 hover:text-cyan-700 hover:border-cyan-400'
+              : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/50'
+          }`}
         >
-          <Camera className="w-4 h-4 text-cyan-400" />
-          <span>START WEBCAM CONTROL</span>
+          <Camera className="w-4 h-4 text-cyan-500" />
+          <span className="font-semibold">{t.startWebcam}</span>
         </button>
       </div>
     );
@@ -96,38 +106,40 @@ export default function CameraFeed({
     <div className="relative group select-none">
       {/* Container Card */}
       <div
-        className={`relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-slate-950/80 backdrop-blur-xl shadow-2xl transition-all duration-300 ${
-          isMinimized ? 'w-48 h-12' : 'w-64 sm:w-72 h-48 sm:h-52'
-        }`}
+        className={`relative overflow-hidden rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 ${
+          isLight
+            ? 'border-cyan-500/40 bg-white/90'
+            : 'border-cyan-500/30 bg-slate-950/80'
+        } ${isMinimized ? 'w-48 h-12' : 'w-64 sm:w-72 h-48 sm:h-52'}`}
       >
         {/* Header HUD Bar */}
-        <div className="absolute top-0 inset-x-0 h-8 bg-gradient-to-b from-black/80 to-transparent z-20 flex items-center justify-between px-3">
+        <div className="absolute top-0 inset-x-0 h-8 bg-gradient-to-b from-black/85 via-black/60 to-transparent z-20 flex items-center justify-between px-3">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             <span className="text-[10px] font-mono tracking-widest text-cyan-400 font-bold uppercase">
-              OPTIC SENSOR
+              {t.opticSensor}
             </span>
           </div>
 
           <div className="flex items-center gap-1">
             <button
               onClick={() => setMirror(!mirror)}
-              title="Toggle Mirror View"
-              className="p-1 rounded text-slate-400 hover:text-cyan-300 hover:bg-slate-800/60 transition-colors"
+              title={t.tooltips.mirror}
+              className="p-1 rounded text-slate-300 hover:text-cyan-300 hover:bg-white/10 transition-colors cursor-pointer"
             >
               <RefreshCw className="w-3 h-3" />
             </button>
             <button
               onClick={() => setIsMinimized(!isMinimized)}
-              title={isMinimized ? 'Expand Camera' : 'Minimize Camera'}
-              className="p-1 rounded text-slate-400 hover:text-cyan-300 hover:bg-slate-800/60 transition-colors"
+              title={isMinimized ? t.tooltips.expand : t.tooltips.minimize}
+              className="p-1 rounded text-slate-300 hover:text-cyan-300 hover:bg-white/10 transition-colors cursor-pointer"
             >
               {isMinimized ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
             </button>
             <button
               onClick={onToggle}
-              title="Disable Camera"
-              className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-slate-800/60 transition-colors"
+              title={t.tooltips.disable}
+              className="p-1 rounded text-slate-300 hover:text-rose-400 hover:bg-white/10 transition-colors cursor-pointer"
             >
               <CameraOff className="w-3.5 h-3.5" />
             </button>
@@ -140,24 +152,22 @@ export default function CameraFeed({
             {isLoading && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-950/90 z-10 text-cyan-400">
                 <RefreshCw className="w-6 h-6 animate-spin text-cyan-400" />
-                <span className="text-xs font-mono">INITIALIZING VISION AI...</span>
+                <span className="text-xs font-mono">{t.initializing}</span>
               </div>
             )}
 
             {cameraError && (
               <div className="absolute inset-0 p-4 flex flex-col items-center justify-center text-center gap-2 bg-slate-950/95 z-10 text-rose-300">
                 <AlertCircle className="w-7 h-7 text-rose-400" />
-                <span className="text-xs font-semibold">Vision Input Offline</span>
+                <span className="text-xs font-semibold">{t.offlineTitle}</span>
                 <p className="text-[10px] text-slate-400 leading-tight">
-                  {cameraError.includes('denied')
-                    ? 'Camera permission denied. Use mouse/touch to interact with the 3D model.'
-                    : cameraError}
+                  {cameraError.includes('denied') ? t.deniedDesc : cameraError}
                 </p>
                 <button
                   onClick={() => window.location.reload()}
-                  className="mt-1 text-[10px] px-2.5 py-1 rounded bg-slate-800 border border-slate-700 hover:border-cyan-500 text-slate-200"
+                  className="mt-1 text-[10px] px-2.5 py-1 rounded bg-slate-800 border border-slate-700 hover:border-cyan-500 text-slate-200 cursor-pointer"
                 >
-                  Retry Camera
+                  {t.retry}
                 </button>
               </div>
             )}
@@ -187,8 +197,8 @@ export default function CameraFeed({
         )}
 
         {isMinimized && (
-          <div className="w-full h-full flex items-center justify-center px-3 pt-6 text-[11px] font-mono text-cyan-300">
-            <span>TRACKING ACTIVE</span>
+          <div className="w-full h-full flex items-center justify-center px-3 pt-6 text-[11px] font-mono text-cyan-500 font-bold">
+            <span>{t.trackingActive}</span>
           </div>
         )}
       </div>
